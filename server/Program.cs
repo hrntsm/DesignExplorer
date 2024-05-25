@@ -20,9 +20,14 @@ class Server
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
 
-            string filePath = "./index.html" + request.Url.LocalPath;
+            string filePath = "." + request.Url.LocalPath;
             Console.WriteLine($"Requested path: {filePath}");
-            if (File.Exists(filePath))
+            if (request.Url.LocalPath == "/")
+            {
+                response.Redirect("/index.html");
+                Console.WriteLine("Redirected to /index.html");
+            }
+            else if (File.Exists(filePath))
             {
                 string extension = Path.GetExtension(filePath);
                 string contentType = GetContentType(extension);
