@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -7,12 +8,12 @@ class Server
 {
     static async Task Main(string[] args)
     {
-        Console.WriteLine($"Wake Tunny DesignExplorer Server");
+        LogMessage($"Wake Tunny DesignExplorer Server");
         string port = args.Length > 0 ? args[0] : "8080";
         var listener = new HttpListener();
         listener.Prefixes.Add($"http://localhost:{port}/");
         listener.Start();
-        Console.WriteLine($"Listening on http://localhost:{port}/");
+        LogMessage($"Listening on http://localhost:{port}/");
 
         while (true)
         {
@@ -21,11 +22,11 @@ class Server
             HttpListenerResponse response = context.Response;
 
             string filePath = "." + request.Url.LocalPath;
-            Console.WriteLine($"Requested path: {filePath}");
+            LogMessage($"Requested path: {filePath}");
             if (request.Url.LocalPath == "/")
             {
                 response.Redirect("/index.html");
-                Console.WriteLine("Redirected to /index.html");
+                LogMessage("Redirected to /index.html");
             }
             else if (File.Exists(filePath))
             {
@@ -37,16 +38,22 @@ class Server
                 byte[] buffer = File.ReadAllBytes(filePath);
                 response.ContentLength64 = buffer.Length;
                 response.OutputStream.Write(buffer, 0, buffer.Length);
-                Console.WriteLine($"Served file: {filePath}");
+                LogMessage($"Served file: {filePath}");
             }
             else
             {
                 response.StatusCode = 404;
-                Console.WriteLine($"File not found: {filePath}");
+                LogMessage($"File not found: {filePath}");
             }
 
             response.OutputStream.Close();
         }
+    }
+
+    static void LogMessage(string message)
+    {
+        string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        Console.WriteLine($"[{timestamp}] {message}");
     }
 
     static string GetContentType(string extension)
