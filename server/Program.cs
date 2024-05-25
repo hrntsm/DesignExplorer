@@ -11,9 +11,9 @@ class Server
         LogMessage($"Wake Tunny DesignExplorer Server");
         string port = args.Length > 0 ? args[0] : "8080";
         var listener = new HttpListener();
-        listener.Prefixes.Add($"http://localhost:{port}/");
+        listener.Prefixes.Add($"http://127.0.0.1:{port}/");
         listener.Start();
-        LogMessage($"Listening on http://localhost:{port}/");
+        LogMessage($"Listening on http://127.0.0.1:{port}/");
 
         while (true)
         {
@@ -26,7 +26,7 @@ class Server
             if (request.Url.LocalPath == "/")
             {
                 response.Redirect("/index.html");
-                LogMessage("Redirected to /index.html");
+                LogMessage("Redirected to /index.html", response.StatusCode);
             }
             else if (File.Exists(filePath))
             {
@@ -38,22 +38,29 @@ class Server
                 byte[] buffer = File.ReadAllBytes(filePath);
                 response.ContentLength64 = buffer.Length;
                 response.OutputStream.Write(buffer, 0, buffer.Length);
-                LogMessage($"Served file: {filePath}");
+                LogMessage($"Served file: {filePath}", response.StatusCode);
             }
             else
             {
                 response.StatusCode = 404;
-                LogMessage($"File not found: {filePath}");
+                LogMessage($"File not found: {filePath}", response.StatusCode);
             }
 
             response.OutputStream.Close();
         }
     }
 
-    static void LogMessage(string message)
+    static void LogMessage(string message, int statusCode = 0)
     {
         string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-        Console.WriteLine($"[{timestamp}] {message}");
+        string logMessage = $"[{timestamp}] {message}";
+
+        if (statusCode != 0)
+        {
+            logMessage += $" (Status Code: {statusCode})";
+        }
+
+        Console.WriteLine($"[{timestamp}] {logMessage}");
     }
 
     static string GetContentType(string extension)
