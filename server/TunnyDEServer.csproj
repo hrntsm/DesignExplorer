@@ -8,4 +8,22 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
   </PropertyGroup>
 
+  <Target Name="CopySrcAndZipOutput" AfterTargets="AfterBuild">
+    <PropertyGroup>
+      <SourceFolderPath>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\src'))</SourceFolderPath>
+      <OutputZipPath>$(OutputPath)TT-DesignExplorer.zip</OutputZipPath>
+    </PropertyGroup>
+
+    <!-- 前回のZIPファイルを削除 -->
+    <Delete Files="$(OutputZipPath)" Condition="Exists('$(OutputZipPath)')" />
+
+    <!-- srcフォルダの中身を$OutputPathにコピー -->
+    <ItemGroup>
+      <SourceFiles Include="$(SourceFolderPath)\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(OutputPath)\%(RecursiveDir)" SkipUnchangedFiles="true" />
+
+    <!-- $OutputPath全体をZIP化 -->
+    <Exec Command="powershell.exe -NoProfile -Command &quot;&amp; { Compress-Archive -Path '$(OutputPath)*' -DestinationPath '$(OutputZipPath)' }&quot;" />
+  </Target>
 </Project>
